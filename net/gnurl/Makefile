@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gnurl
-PKG_VERSION:=7.64.0
-PKG_RELEASE:=1
+PKG_VERSION:=7.67.0
+PKG_RELEASE:=2
 
-PKG_SOURCE_URL:=https://ftp.gnu.org/gnu/gnunet
+PKG_SOURCE_URL:=@GNU/gnunet
 
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_HASH:=68b68a1be6a04f514a863eaac0d6b89f935833aff4e60bc2bcac472a465c755f
+PKG_HASH:=2b972454ac3ab8c40f4dd2beeff168dde9666c473a1418f7f69194563e4caa46
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=COPYING
@@ -28,7 +28,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/gnurl/Default
   SECTION:=net
   CATEGORY:=Network
-  URL:=https://gnunet.org/gnurl
+  URL:=https://gnunet.org/en/gnurl.html
   MAINTAINER:=Daniel Golle <daniel@makrotopia.org>
 endef
 

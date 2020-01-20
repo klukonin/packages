@@ -8,14 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=strongswan
-PKG_VERSION:=5.7.2
+PKG_VERSION:=5.8.2
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=http://download.strongswan.org/ http://download2.strongswan.org/
-PKG_HASH:=308e3ba76e2ce2da070e48fcebbe1fa923a27cc71e43bf63917e6f2a889ecc70
-PKG_LICENSE:=GPL-2.0+
+PKG_SOURCE_URL:=https://download.strongswan.org/ https://download2.strongswan.org/
+PKG_HASH:=86900ddbe7337c923dadf2c8339ae8ed2b9158e3691745884d08ae534677430e
+PKG_LICENSE:=GPL-2.0-or-later
 PKG_MAINTAINER:=Stijn Tintel <stijn@linux-ipv6.be>
+PKG_CPE_ID:=cpe:/a:strongswan:strongswan
 
 PKG_MOD_AVAILABLE:= \
 	addrblock \

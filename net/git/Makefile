@@ -8,16 +8,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=git
-PKG_VERSION:=2.21.0
+PKG_VERSION:=2.25.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/software/scm/git/
-PKG_HASH:=8ccb1ce743ee991d91697e163c47c11be4bf81efbdd9fb0b4a7ad77cc0020d28
+PKG_HASH:=c060291a3ffb43d7c99f4aa5c4d37d3751cf6bca683e7344ea407ea504d9a8d0
 
 PKG_INSTALL:=1
 PKG_FIXUP:=autoreconf
 PKG_BUILD_PARALLEL:=1
+
+PKG_CPE_ID:=cpe:/a:git-scm:git
 
 include $(INCLUDE_DIR)/package.mk
 

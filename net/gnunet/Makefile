@@ -2,15 +2,16 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gnunet
 
-PKG_VERSION:=0.11.3
+PKG_VERSION:=0.12.2
 PKG_RELEASE:=1
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/gnunet
-PKG_HASH:=2405db9232ae6ded57e7ff513abdf810c65e3861823b3985717ce990b8d87a37
+PKG_HASH:=ac288b047d1156fc5e739062b11242bad0487993631e79781aede620ddf18cd7
 
 PKG_LICENSE:=AGPL-3.0
 PKG_LICENSE_FILES:=COPYING
 PKG_MAINTAINER:=Daniel Golle <daniel@makrotopia.org>
+PKG_CPE_ID:=cpe:/a:gnunet:gnunet
 
 PKG_BUILD_PARALLEL:=1
 PKG_FIXUP:=gettext-version
@@ -32,11 +33,15 @@ CONFIGURE_ARGS+= \
 	--enable-experimental \
 	--with-extractor=$(STAGING_DIR)/usr \
 	--with-gnutls=$(STAGING_DIR)/usr \
+	$(if $(CONFIG_PACKAGE_$(PKG_NAME)-transport-bluetooth),--with-libbluetooth="$(STAGING_DIR)/usr",--without-libbluetooth) \
 	--with-libgnurl=$(STAGING_DIR)/usr \
+	--with-libogg=$(STAGING_DIR)/usr \
+	--with-libopus=$(STAGING_DIR)/usr \
+	--with-libpulse=$(STAGING_DIR)/usr \
 	--with-libunistring-prefix=$(STAGING_DIR)/usr \
 	--with-microhttpd=$(STAGING_DIR)/usr
 
-# ToDo: request upstream to provide --with-pulseaudio=...
+# upstream now provides --with-pulseaudio but doesn't detect rpath
 TARGET_LDFLAGS+= -Wl,-rpath-link=$(STAGING_DIR)/usr/lib/pulseaudio
 
 define Package/gnunet/Default
@@ -99,7 +104,7 @@ define BuildComponent
 	( if [ "$(PLUGIN_$(1))" ]; then \
 		$(INSTALL_DIR) $$(1)/usr/lib/gnunet ; \
 		for plug in $(PLUGIN_$(1)); do \
-			$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/lib/gnunet/libgnunet_plugin_$$$$$$$$plug*.so $$(1)/usr/lib/gnunet ; \
+			$(CP) $(PKG_INSTALL_DIR)/usr/lib/gnunet/libgnunet_plugin_$$$$$$$$plug*.so $$(1)/usr/lib/gnunet ; \
 		done \
 	fi )
 
@@ -144,7 +149,7 @@ define Package/gnunet/install
 	done )
 
 	( for plug in ats_proportional ats2_simple block_dht block_regex block_revocation transport_unix; do \
-		$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/lib/gnunet/libgnunet_plugin_$$$$plug*.so $(1)/usr/lib/gnunet ; \
+		$(CP) $(PKG_INSTALL_DIR)/usr/lib/gnunet/libgnunet_plugin_$$$$plug*.so $(1)/usr/lib/gnunet ; \
 	done )
 
 	( for lex in daemon-topology helper-nat-client \
@@ -213,7 +218,6 @@ PLUGIN_transport-http_client:=transport_http_client transport_https_client
 
 DEPENDS_transport-http_server:=+libmicrohttpd-ssl
 PLUGIN_transport-http_server:=transport_http_server transport_https_server
-BIN_transport-http_server:=transport-certificate-creation
 
 PLUGIN_transport-tcp:=transport_tcp
 
@@ -221,10 +225,6 @@ PLUGIN_transport-udp:=transport_udp
 
 PLUGIN_transport-wlan:=transport_wlan
 LIBEXEC_transport-wlan:=helper-transport-wlan
-
-
-DEPENDS_experiments:=+libglpk
-PLUGIN_experiments:=ats_mlp ats_ril
 
 # BIN_dv:=dv
 LIB_dv:=dv
@@ -241,7 +241,7 @@ CONF_fs:=fs
 
 DEPENDS_gns:=+gnunet-vpn +iptables-mod-extra
 USERID_gns:=gnunet=958:gnunetdns=452
-BIN_gns:=gns gns-import.sh gns-proxy-setup-ca namecache namestore resolver zoneimport 
+BIN_gns:=gns gns-import.sh namecache namestore resolver zoneimport 
 LIB_gns:=gns gnsrecord namecache namestore
 PLUGIN_gns:=block_dns block_gns gnsrecord_conversation gnsrecord_dns gnsrecord_gns
 LIBEXEC_gns:=dns2gns helper-dns service-dns service-gns service-namecache service-namestore service-resolver service-zonemaster
@@ -265,7 +265,7 @@ BIN_reclaim:=credential reclaim
 LIB_reclaim:=consensus credential abe reclaim reclaimattribute secretsharing
 LIBEXEC_reclaim:=service-consensus service-credential service-reclaim service-secretsharing
 CONF_reclaim:=consensus credential reclaim secretsharing
-PLUGIN_reclaim:=block_consensus gnsrecord_credential gnsrecord_reclaim reclaim_attribute_gnuid reclaim_sqlite
+PLUGIN_reclaim:=block_consensus gnsrecord_credential gnsrecord_reclaim reclaim_attribute_gnuid
 
 DEPENDS_rest:=+gnunet-gns +gnunet-reclaim +libmicrohttpd-ssl +jansson
 LIB_rest:=rest json
@@ -282,7 +282,7 @@ PLUGIN_dhtcache-heap:=datacache_heap
 CONFLICTS_dhtcache-heap:=gnunet-dhtcache-pgsql gnunet-dhtcache-sqlite
 
 DEPENDS_gns-flat:=+gnunet-gns
-PLUGIN_gns-flat:=namecache_flat namestore_heap
+PLUGIN_gns-flat:=namecache_flat namestore_flat
 
 PLUGIN_peerstore-flat:=peerstore_flat
 
@@ -394,7 +394,6 @@ $(eval $(call BuildComponent,curl,cURL wrapper component,))
 $(eval $(call BuildComponent,datastore,data storage components,))
 $(eval $(call BuildComponent,dht-cli,DHT command line clients,))
 # $(eval $(call BuildComponent,dv,distance-vector routing component,y))
-$(eval $(call BuildComponent,experiments,experimental components,))
 $(eval $(call BuildComponent,fs,file-sharing components,))
 $(eval $(call BuildComponent,gns,name resolution components,y))
 $(eval $(call BuildComponent,gns-proxy,gns-proxy component,))

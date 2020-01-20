@@ -9,17 +9,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=LVM2
-PKG_VERSION:=2.03.02
+PKG_VERSION:=2.03.05
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME).$(PKG_VERSION).tgz
 PKG_SOURCE_URL:=https://sourceware.org/pub/lvm2
-PKG_HASH:=550ba750239fd75b7e52c9877565cabffef506bbf6d7f6f17b9700dee56c720f
+PKG_HASH:=ca52815c999b20c6d25e3192f142f081b93d01f07b9d787e99664b169dba2700
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME).$(PKG_VERSION)
 
 PKG_MAINTAINER:=Daniel Golle <daniel@makrotopia.org>
 PKG_LICENSE:=GPL-2.0 LGPL-2.1
 PKG_LICENSE_FILES:=COPYING COPYING.lib
+PKG_CPE_ID:=cpe:/a:heinz_mauelshagen:lvm2
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -76,7 +77,7 @@ endef
 
 define Package/libdevmapper/install
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libdevmapper.so.* $(1)/usr/lib
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libdevmapper.so.* $(1)/usr/lib
 endef
 
 define Package/lvm2/install

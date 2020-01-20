@@ -9,19 +9,20 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=bind
-PKG_VERSION:=9.12.3-P4
+PKG_VERSION:=9.14.8
 PKG_RELEASE:=1
 USERID:=bind=57:bind=57
 
 PKG_MAINTAINER:=Noah Meyerhans <frodo@morgul.net>
-PKG_LICENSE := MPL-2.0
+PKG_LICENSE:=MPL-2.0
+PKG_LICENSE_FILES:=LICENSE
 PKG_CPE_ID:=cpe:/a:isc:bind
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:= \
 	https://www.mirrorservice.org/sites/ftp.isc.org/isc/bind9/$(PKG_VERSION) \
 	https://ftp.isc.org/isc/bind9/$(PKG_VERSION)
-PKG_HASH:=d1014453c62623e42323fd83fc89444c12ae6b707fd586466959a052fe21f206
+PKG_HASH:=e545aa75ced6695a9bf4b591606ef00260fb3c055c2865b299cfe0fe6eeea076
 
 PKG_FIXUP:=autoreconf
 PKG_REMOVE_FILES:=aclocal.m4 libtool.m4
@@ -31,7 +32,6 @@ PKG_USE_MIPS16:=0
 PKG_BUILD_PARALLEL:=1
 
 PKG_CONFIG_DEPENDS := \
-	CONFIG_BIND_ENABLE_FILTER_AAAA \
 	CONFIG_BIND_LIBJSON \
 	CONFIG_BIND_LIBXML2
 
@@ -56,7 +56,7 @@ endef
 define Package/bind-libs
   SECTION:=libs
   CATEGORY:=Libraries
-  DEPENDS:=+libopenssl +zlib
+  DEPENDS:=+libopenssl +zlib +libpthread +libatomic
   TITLE:=bind shared libraries
   URL:=https://www.isc.org/software/bind
 ifdef CONFIG_BIND_LIBJSON
@@ -74,6 +74,12 @@ endef
 
 define Package/bind-server/config
 	source "$(SOURCE)/Config.in"
+endef
+
+define Package/bind-server-filter-aaaa
+  $(call Package/bind-server)
+  DEPENDS:=+bind-server
+  TITLE+= filter AAAA plugin
 endef
 
 define Package/bind-client
@@ -122,33 +128,22 @@ export BUILD_CC="$(TARGET_CC)"
 TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
 
 CONFIGURE_ARGS += \
-	--enable-ipv6=$(if $(CONFIG_IPV6),yes,no) \
-	--with-randomdev="/dev/urandom" \
-	--disable-threads \
 	--disable-linux-caps \
 	--with-openssl="$(STAGING_DIR)/usr" \
 	--with-libtool \
 	--without-lmdb \
-	--enable-epoll=yes \
-	--with-gost=no \
-	--with-gssapi=no \
-	--with-ecdsa=$(if $(CONFIG_OPENSSL_WITH_EC),yes,no) \
-	--with-eddsa=$(if $(CONFIG_BIND_ENABLE_EDDSA),yes,no) \
-	--with-readline=no \
-	--enable-atomic=no \
+	--enable-epoll \
+	--without-gssapi \
+	--without-readline \
+	--without-python \
 	--sysconfdir=/etc/bind
-
-ifdef CONFIG_BIND_ENABLE_FILTER_AAAA
-	CONFIGURE_ARGS += \
-		--enable-filter-aaaa
-endif
 
 ifdef CONFIG_BIND_LIBJSON
 	CONFIGURE_ARGS += \
 		--with-libjson="$(STAGING_DIR)/usr"
 else
 	CONFIGURE_ARGS += \
-		--with-libjson=no
+		--without-libjson
 endif
 
 ifdef CONFIG_BIND_LIBXML2
@@ -156,7 +151,7 @@ ifdef CONFIG_BIND_LIBXML2
 		--with-libxml2="$(STAGING_DIR)/usr"
 else
 	CONFIGURE_ARGS += \
-		--with-libxml2=no
+		--without-libxml2
 endif
 
 CONFIGURE_VARS += \
@@ -204,6 +199,11 @@ define Package/bind-server/conffiles
 /etc/bind/named.conf
 endef
 
+define Package/bind-server-filter-aaaa/install
+	$(INSTALL_DIR) $(1)/usr/lib/named
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/named/filter-aaaa.so $(1)/usr/lib/named
+endef
+
 define Package/bind-client/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/nsupdate $(1)/usr/bin/
@@ -245,6 +245,7 @@ endef
 
 $(eval $(call BuildPackage,bind-libs))
 $(eval $(call BuildPackage,bind-server))
+$(eval $(call BuildPackage,bind-server-filter-aaaa))
 $(eval $(call BuildPackage,bind-client))
 $(eval $(call BuildPackage,bind-tools))
 $(eval $(call BuildPackage,bind-rndc))

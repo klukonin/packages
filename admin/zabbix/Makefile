@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=zabbix
-PKG_VERSION:=4.0.6
+PKG_VERSION:=4.0.16
 PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@SF/zabbix
-PKG_HASH:=2890851b3a4b0f70f69ef754aa0d07070b42440f56d280113a9474bc4ed75e5b
+PKG_HASH:=a8d7e18230e62a7bd3fd9af5830a2b1b22818468b5da3deb673865ce40dc4d42
 
 PKG_MAINTAINER:=Etienne CHAMPETIER <champetier.etienne@gmail.com>
 PKG_LICENSE:=GPL-2.0
@@ -71,7 +71,7 @@ endef
 define Package/zabbix/Default
   SECTION:=admin
   CATEGORY:=Administration
-  SUBMENU:=zabbix
+  SUBMENU:=Zabbix
   TITLE:=Zabbix
   URL:=https://www.zabbix.com/
   USERID:=zabbix=53:zabbix=53

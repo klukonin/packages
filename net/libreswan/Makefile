@@ -7,21 +7,22 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libreswan
-PKG_VERSION:=3.27
+PKG_VERSION:=3.29
 PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://download.libreswan.org/
-PKG_HASH:=ead07dd701116094b483dc57e54e2a5ee9a06d3982bb142260bcbf3d1faf7b82
+PKG_HASH:=d60e4160f43272b6307b697a13f79f56b5ec2bca61d83097ddadd8586a58ab3e
 
-PKG_LICENSE:=GPL-2.0
 PKG_MAINTAINER:=Lucian Cristian <lucian.cristian@gmail.com>
+PKG_LICENSE:=GPL-2.0-or-later
+PKG_LICENSE_FILES:=COPYING LICENSE
+PKG_CPE_ID:=cpe:/a:libreswan:libreswan
 
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/kernel.mk
 
 define Package/libreswan/Default
   TITLE:=Libreswan
@@ -40,8 +41,11 @@ $(call Package/libreswan/Default)
   SUBMENU:=VPN
   SECTION:=net
   CATEGORY:=Network
-  DEPENDS:= +kmod-libreswan +libnss +librt +libevent2 +libevent2-pthreads \
-	    +ip-full
+  DEPENDS:= +IPV6:kmod-ip6-vti +IPV6:kmod-ipsec6 +ip-full +iptables-mod-ipsec \
+	+kmod-crypto-aead +kmod-crypto-authenc +kmod-crypto-gcm \
+	+kmod-crypto-hash +kmod-crypto-rng +kmod-ip-vti +kmod-ipsec \
+	+kmod-ipsec4 +kmod-ipt-ipsec +libevent2 +libevent2-pthreads \
+	+libldns +librt +libunbound-heavy +nss-utils +nspr
   PROVIDES:=openswan
   CONFLICTS:=strongswan
   TITLE+= IPsec Server
@@ -55,30 +59,14 @@ $(call Package/libreswan/Default/description)
  Engineering Task Force ("IETF").
 endef
 
-define KernelPackage/libreswan
-$(call Package/libreswan/Default)
-  SUBMENU:=Network Support
-  TITLE+= (kernel module)
-  FILES:=$(PKG_BUILD_DIR)/modobj*/ipsec.$(LINUX_KMOD_SUFFIX)
-  DEPENDS:= +kmod-crypto-authenc +kmod-crypto-hash +kmod-ipt-ipsec +iptables-mod-ipsec \
-	    +kmod-ipsec +kmod-ipsec4 +kmod-crypto-rng +IPV6:kmod-ipsec6
-endef
-
-define KernelPackage/libreswan/description
-$(call Package/libreswan/Default/description)
- This package contains the Libreswan kernel module.
-endef
-
 define Package/libreswan/conffiles
 /etc/ipsec.d
 /etc/ipsec.conf
 /etc/ipsec.secrets
 endef
 
-TARGET_CFLAGS+= -Wno-error=format-nonliteral
 MAKE_FLAGS+= \
     WERROR_CFLAGS=" " \
-    USE_DNSSEC=false \
     USE_LINUX_AUDIT=false \
     USE_LABELED_IPSEC=false \
     USE_NM=false \
@@ -88,10 +76,10 @@ MAKE_FLAGS+= \
     USE_FIPSCHECK=false \
     USE_LIBCAP_NG=false \
     USE_SYSTEMD_WATCHDOG=false \
+    USE_SECCOMP=false\
     INC_USRLOCAL="/usr" \
     FINALRUNDIR="/var/run/pluto" \
     ARCH="$(LINUX_KARCH)" \
-    KERNELSRC="$(LINUX_DIR)"
 
 define Build/Prepare
 	$(call Build/Prepare/Default)
@@ -100,8 +88,7 @@ define Build/Prepare
 endef
 
 define Build/Compile
-	$(call Build/Compile/Default,base)
-	$(call Build/Compile/Default,module)
+	$(call Build/Compile/Default,all)
 endef
 
 define Package/libreswan/install
@@ -123,4 +110,3 @@ define Package/libreswan/install
 endef
 
 $(eval $(call BuildPackage,libreswan))
-$(eval $(call KernelPackage,libreswan))
